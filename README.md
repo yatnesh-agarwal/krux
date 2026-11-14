@@ -1,1 +1,0 @@
-This is starting ok Krux.
