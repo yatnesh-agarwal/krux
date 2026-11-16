@@ -5,9 +5,11 @@ import puzzles from '../../temp_datasets/puzzles@100.json'
 import Numpad from './Numpad'
 import FollowCreatorBtn from './FollowCreatorBtn'
 import { UserGroup } from 'lucide-react-native'
+import {GestureDetector, GestureHandlerRootView, useTapGesture} from  "react-native-gesture-handler"
 
 const PuzzlePage = memo(function PuzzlePage({
   item,
+  onDoubleTap,
   pageHeight,
   sidePadding,
   contentWidth,
@@ -53,9 +55,24 @@ const PuzzlePage = memo(function PuzzlePage({
     )
   }, [updateAnswer])
 
+  const doubleTap = useTapGesture({
+    numberOfTaps: 2,
+    maxDelay: 300,
+    maxDuration: 250,
+    maxDeltaX: 20,
+    maxDeltaY: 20,
+    runOnJS: true,
+    cancelsJSResponder: false,
+    onActivate: () => {
+      onDoubleTap()
+    },
+  })
 
   return (
     <View style={[styles.page, { height: pageHeight, paddingHorizontal: sidePadding }]}>
+      <GestureDetector gesture={doubleTap}>
+        <View style={StyleSheet.absoluteFill} />
+      </GestureDetector>
       <View className = "flex self-center items-center justify-center mt-5 border-white/40 border w-52 h-fit py-2 rounded-2xl">
         <View className = "flex flex-row items-center gap-2 ">
           <UserGroup color="white" fill="white" size={20} />
@@ -63,7 +80,7 @@ const PuzzlePage = memo(function PuzzlePage({
           <Text className = "text-gray-500 text-lg">solved this</Text>
         </View>
       </View>
-      <View style={styles.puzzleArea}>
+      <View pointerEvents="box-none" style={styles.puzzleArea}>
         {item.type === 'math' && item.equation ? (
           <View style={[styles.prompt, { width: contentWidth }]}>
             {item.equation.map((part, index) => (
@@ -129,7 +146,7 @@ const PuzzlePage = memo(function PuzzlePage({
         )}
       </View>
 
-      <View style={[styles.creator, { width: contentWidth }]}>
+      <View pointerEvents="box-none" style={[styles.creator, { width: contentWidth }]}>
         <FollowCreatorBtn />
       </View>
     </View>
@@ -144,6 +161,14 @@ const Feed = () => {
   const reactionSpace = Math.max(56, Math.min(76, feedSize.width * 0.16))
   const contentWidth = Math.max(0, feedSize.width - sidePadding * 2 - reactionSpace)
   const keypadHeight = Math.min(contentWidth / 1.67, Math.max(132, feedSize.height * 0.3))
+  const [isDoubledTap, setIsDoubleTap] = React.useState(false);
+  // const doubleTap = useTapGesture({
+  //   numberOfTaps: 2,
+  //   runOnJS: true,
+  //   onActivate: () => {
+  //     setIsDoubleTap(true)
+  //   }
+  // })
   const saveAnswer = useCallback((id, value) => {
     answers.current[id] = value
   }, [])
@@ -152,44 +177,50 @@ const Feed = () => {
   }, [])
 
   return (
-    <View
-      style={styles.container}
-      onLayout={({ nativeEvent }) => {
-        const { width, height } = nativeEvent.layout
-        setFeedSize((current) => current.width === width && current.height === height ? current : { width, height })
-      }}
-    >
-      {feedSize.height > 0 && feedSize.width > 0 && (
-        <FlatList
-          data={puzzles}
-          pagingEnabled
-          style={styles.list}
-          getItemLayout={(_, index) => ({ length: feedSize.height, offset: feedSize.height * index, index })}
-          keyExtractor={(item) => item.id}
-          decelerationRate="fast"
-          showsVerticalScrollIndicator={false}
-          initialNumToRender={2}
-          maxToRenderPerBatch={4}
-          windowSize={5}
-          renderItem={({ item }) => (
-            <PuzzlePage
-              item={item}
-              pageHeight={feedSize.height}
-              sidePadding={sidePadding}
-              contentWidth={contentWidth}
-              keypadHeight={keypadHeight}
-              initialAnswer={answers.current[item.id] ?? ''}
-              initialSelectedOption={selectedOptions.current[item.id] ?? null}
-              onAnswerChange={saveAnswer}
-              onOptionSelect={saveSelectedOption}
-            />
-          )}
-        />
-      )}
-      <View pointerEvents="box-none" style={styles.reactionRail}>
-        <UserReactions />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View
+        style={styles.container}
+        onLayout={({ nativeEvent }) => {
+          const { width, height } = nativeEvent.layout
+          setFeedSize((current) => current.width === width && current.height === height ? current : { width, height })
+        }}
+      >
+        {feedSize.height > 0 && feedSize.width > 0 && (
+          <FlatList
+            data={puzzles}
+            pagingEnabled
+            style={styles.list}
+            getItemLayout={(_, index) => ({ length: feedSize.height, offset: feedSize.height * index, index })}
+            keyExtractor={(item) => item.id}
+            decelerationRate="fast"
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={2}
+            maxToRenderPerBatch={4}
+            windowSize={5}
+            onMomentumScrollEnd={() => {
+              setIsDoubleTap(false)
+            }}
+            renderItem={({ item }) => (
+              <PuzzlePage
+                item={item}
+                pageHeight={feedSize.height}
+                sidePadding={sidePadding}
+                contentWidth={contentWidth}
+                keypadHeight={keypadHeight}
+                initialAnswer={answers.current[item.id] ?? ''}
+                initialSelectedOption={selectedOptions.current[item.id] ?? null}
+                onAnswerChange={saveAnswer}
+                onOptionSelect={saveSelectedOption}
+                onDoubleTap={() => setIsDoubleTap(true)}
+              />
+            )}
+          />
+        )}
+        <View pointerEvents="box-none" style={styles.reactionRail}>
+          <UserReactions doubleTap = {isDoubledTap} />
+        </View>
       </View>
-    </View>
+    </GestureHandlerRootView>
   )
 }
 
