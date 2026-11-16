@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react-native'
 import React, { memo } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
@@ -15,6 +16,7 @@ const Numpad = memo(function Numpad({ width, height, onKeyPress }) {
   const keyHeight = (height - horizontalPadding * 2 - keyGap * 3) / 4
 
   return (
+    <View>
     <View style={[styles.pad, { width, height, padding: horizontalPadding }]}>
       {rows.map((row, rowIndex) => (
         <View
@@ -23,7 +25,7 @@ const Numpad = memo(function Numpad({ width, height, onKeyPress }) {
         >
           {row.map((value) => (
             <Pressable
-              className = "w-28 h-13 z-19 pt-1 rounded-lg bg-white/20 items-center"
+              className = "w-28 h-13 z-19 pt-1 px-2 rounded-lg bg-white/20 items-center"
               key={value}
               accessibilityRole="button"
               accessibilityLabel={value === 'X' ? 'Delete' : `Enter ${value}`}
@@ -42,6 +44,14 @@ const Numpad = memo(function Numpad({ width, height, onKeyPress }) {
           ))}
         </View>
       ))}
+    </View>
+    <View className ="flex items-center mt-2">
+      <Pressable 
+      android_ripple={{ color: 'rgba(255,255,255,0.18)' }} className = "w-80 h-10 bg-[#2f4221] rounded-xl gap-2 flex flex-row items-center justify-center">
+        <Text className = "text-white font-bold">Check Answer</Text>
+        <ArrowRight color="white" size={20}/>
+      </Pressable>
+    </View>
     </View>
   )
 })
