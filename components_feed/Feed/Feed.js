@@ -21,17 +21,38 @@ const PuzzlePage = memo(function PuzzlePage({
   const [selectedOption, setSelectedOption] = useState(initialSelectedOption)
   const answerRef = useRef(answer)
   const [userSolved, setUserSolved] = useState(18)
+  const [isUserAnswerCorrect, setIsUserAnswerCorrect] = React.useState(null);
+
+  const checkUserAnswer = useCallback(() => {
+    const userAnswer = String(answerRef.current).trim()
+    const correctAnswer = String(item.answer).trim()
+
+    if (!userAnswer) return
+
+    setIsUserAnswerCorrect(userAnswer === correctAnswer)
+  }, [item.answer])
+
 
   const updateAnswer = useCallback((nextAnswer) => {
     answerRef.current = nextAnswer
     setAnswer(nextAnswer)
+
+    // Reset the result whenever the answer changes
+    setIsUserAnswerCorrect(null)
+
     onAnswerChange(item.id, nextAnswer)
   }, [item.id, onAnswerChange])
 
   const handleKeyPress = useCallback((value) => {
     const current = answerRef.current
-    updateAnswer(value === 'X' ? current.slice(0, -1) : `${current}${value}`)
+
+    updateAnswer(
+      value === 'X'
+        ? current.slice(0, -1)
+        : `${current}${value}`
+    )
   }, [updateAnswer])
+
 
   return (
     <View style={[styles.page, { height: pageHeight, paddingHorizontal: sidePadding }]}>
@@ -66,10 +87,23 @@ const PuzzlePage = memo(function PuzzlePage({
               accessibilityLabel="Enter answer"
               placeholder="Enter Answer"
               placeholderTextColor="#9A9A9A"
-              style={[styles.answerInput, { width: contentWidth }]}
+              style={[
+                styles.answerInput,
+                { width: contentWidth },
+                isUserAnswerCorrect === true && {
+                  borderWidth: 2,
+                  borderColor: '#A6E34A',
+                  color: '#A6E34A',
+                },
+                isUserAnswerCorrect === false && {
+                  borderWidth: 2,
+                  borderColor: '#FF4D4D',
+                  color: '#FF4D4D',
+                },
+              ]}
             />
             <View style={{ width: contentWidth }}>
-              <Numpad width={contentWidth} height={keypadHeight} onKeyPress={handleKeyPress} />
+              <Numpad width={contentWidth} height={keypadHeight} onCheckAnswer={checkUserAnswer} onKeyPress={handleKeyPress} />
             </View>
           </>
         ) : (
@@ -238,4 +272,5 @@ const styles = StyleSheet.create({
     top: 0,
     zIndex: 10,
   },
+  
 })

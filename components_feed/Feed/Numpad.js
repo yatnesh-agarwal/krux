@@ -9,7 +9,7 @@ const rows = [
   ['.', 0, 'X'],
 ]
 
-const Numpad = memo(function Numpad({ width, height, onKeyPress }) {
+const Numpad = memo(function Numpad({ width, height, onKeyPress, onCheckAnswer }) {
   const horizontalPadding = 8
   const keyGap = 8
   const keyWidth = (width - horizontalPadding * 2 - keyGap * 2) / 3
@@ -45,8 +45,10 @@ const Numpad = memo(function Numpad({ width, height, onKeyPress }) {
         </View>
       ))}
     </View>
+    {/* check answer */}
     <View className ="flex items-center mt-2">
       <Pressable 
+      onPress={onCheckAnswer}
       android_ripple={{ color: 'rgba(255,255,255,0.18)' }} className = "w-80 h-10 bg-[#2f4221] rounded-xl gap-2 flex flex-row items-center justify-center">
         <Text className = "text-white font-bold">Check Answer</Text>
         <ArrowRight color="white" size={20}/>
