@@ -1,10 +1,10 @@
-import React, { memo, useCallback, useRef, useState } from 'react'
+import React, { memo, useCallback, useRef, useState, useEffect } from 'react'
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import UserReactions from './UserReactions'
 import puzzles from '../../temp_datasets/puzzles@100.json'
 import Numpad from './Numpad'
 import FollowCreatorBtn from './FollowCreatorBtn'
-import { UserGroup } from 'lucide-react-native'
+import { Heart, UserGroup } from 'lucide-react-native'
 import {GestureDetector, GestureHandlerRootView, useTapGesture} from  "react-native-gesture-handler"
 
 const PuzzlePage = memo(function PuzzlePage({
@@ -24,6 +24,7 @@ const PuzzlePage = memo(function PuzzlePage({
   const answerRef = useRef(answer)
   const [userSolved, setUserSolved] = useState(18)
   const [isUserAnswerCorrect, setIsUserAnswerCorrect] = React.useState(null);
+  const [heartPosition, sethHeartPosition] = React.useState(null);
 
   const checkUserAnswer = useCallback(() => {
     const userAnswer = String(answerRef.current).trim()
@@ -63,15 +64,44 @@ const PuzzlePage = memo(function PuzzlePage({
     maxDeltaY: 20,
     runOnJS: true,
     cancelsJSResponder: false,
-    onActivate: () => {
+    onActivate: (event) => {
       onDoubleTap()
+      sethHeartPosition({
+        x: event.x,
+        y: event.y,
+        id: Date.now()
+      })
     },
   })
+
+  useEffect(()=>{
+    if (!heartPosition) return 
+    const timeout = setTimeout(()=>{
+      sethHeartPosition(null)
+    },700)
+    return () => clearTimeout(timeout)
+  }, [heartPosition])
 
   return (
     <View style={[styles.page, { height: pageHeight, paddingHorizontal: sidePadding }]}>
       <GestureDetector gesture={doubleTap}>
-        <View style={StyleSheet.absoluteFill} />
+        <View style={StyleSheet.absoluteFill}>
+        {heartPosition && (
+          <Text
+          pointerEvents='none'
+          style = {{
+            position: "absolute",
+            left : heartPosition.x - 25,
+            top: heartPosition.y - 25,
+            fontSize: 50,
+            zIndex: 100,
+            elevation: 100,
+          }}
+          >
+            <Heart fill = "red" color = "red" size={40} />
+          </Text>
+        )}
+        </View>
       </GestureDetector>
       <View className = "flex self-center items-center justify-center mt-5 border-white/40 border w-52 h-fit py-2 rounded-2xl">
         <View className = "flex flex-row items-center gap-2 ">
