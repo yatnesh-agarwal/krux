@@ -6,6 +6,7 @@ import Numpad from './Numpad'
 import FollowCreatorBtn from './FollowCreatorBtn'
 import { Heart, UserGroup } from 'lucide-react-native'
 import {GestureDetector, GestureHandlerRootView, useTapGesture} from  "react-native-gesture-handler"
+import {totalUsers} from "../../users_data/TotalUsers"
 
 const PuzzlePage = memo(function PuzzlePage({
   item,
@@ -22,15 +23,24 @@ const PuzzlePage = memo(function PuzzlePage({
   const [answer, setAnswer] = useState(initialAnswer)
   const [selectedOption, setSelectedOption] = useState(initialSelectedOption)
   const answerRef = useRef(answer)
-  const [userSolved, setUserSolved] = useState(18)
+  const [userSolved, setUserSolved] = useState(1)
   const [isUserAnswerCorrect, setIsUserAnswerCorrect] = React.useState(null);
   const [heartPosition, sethHeartPosition] = React.useState(null);
+
+  const calculateUserRateOfSolvingThisQuestion = () => {
+    const total_Users = totalUsers()
+    const percentage = ((userSolved / total_Users) * 100).toFixed(2)
+    return percentage
+  }
 
   const checkUserAnswer = useCallback(() => {
     const userAnswer = String(answerRef.current).trim()
     const correctAnswer = String(item.answer).trim()
 
     if (!userAnswer) return
+    const solvedRate = calculateUserRateOfSolvingThisQuestion()
+
+    setUserSolved(solvedRate)
 
     setIsUserAnswerCorrect(userAnswer === correctAnswer)
   }, [item.answer])
@@ -98,7 +108,7 @@ const PuzzlePage = memo(function PuzzlePage({
             elevation: 100,
           }}
           >
-            <Heart fill = "red" color = "red" size={40} />
+            <Heart fill = "red" color = "red" size={50} />
           </Text>
         )}
         </View>
